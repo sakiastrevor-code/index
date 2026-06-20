@@ -10,9 +10,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Hanna">
 <meta name="theme-color" content="#1a6fb0">
-<!-- The home-screen icon = this image. Drop a file named face.png next to this file. -->
-<link rel="apple-touch-icon" href="face.png">
-<link rel="icon" href="face.png">
+<!-- The home-screen icon = this image. -->
+<link rel="apple-touch-icon" href="Face.png">
+<link rel="icon" href="Face.png">
 
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -24,15 +24,6 @@
   }
   #game { display: block; width: 100vw; height: 100vh; }
 
-  /* Score pill */
-  #score {
-    position: fixed; top: env(safe-area-inset-top, 12px); left: 50%;
-    transform: translateX(-50%); margin-top: 12px;
-    background: rgba(255,255,255,0.92); color: #0e3d63;
-    padding: 8px 18px; border-radius: 999px; font-weight: 800;
-    font-size: 17px; letter-spacing: 0.3px; z-index: 5;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.18); pointer-events: none;
-  }
   #hint {
     position: fixed; bottom: env(safe-area-inset-bottom, 16px); left: 50%;
     transform: translateX(-50%); margin-bottom: 18px;
@@ -56,7 +47,6 @@
     text-shadow: 0 3px 0 #e8a200, 0 6px 24px rgba(0,0,0,0.4);
     animation: pop 0.6s cubic-bezier(.18,1.4,.4,1) both;
   }
-  #win p { color: #ffe9a8; margin-top: 10px; font-size: 16px; font-weight: 600; }
   @keyframes pop { 0% { transform: scale(0.3) rotate(-8deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
   #again {
     margin-top: 28px; width: 64px; height: 64px; padding: 0; border: none; border-radius: 50%;
@@ -92,14 +82,14 @@ function resize() {
 window.addEventListener('resize', resize);
 resize();
 
-// --- Load the face image (drop a file named face.png next to index.html) ---
+// --- Load the face image ---
 const face = new Image();
 let faceLoaded = false;
 face.onload = () => faceLoaded = true;
-face.src = 'face.png';
+face.src = 'Face.png';
 
 // --- Game state ---
-let ball, bananas, eaten, exploding, particles, won;
+let ball, bananas, exploding, particles, won;
 
 function startRadius() { return Math.max(28, Math.min(W, H) * 0.07); }
 function maxRadius()   { return Math.min(W, H) * 0.46; }
@@ -118,7 +108,7 @@ function reset() {
   ball = { x: W / 2, y: H / 2, vx: 0, vy: 0, r: startRadius() };
   bananas = [];
   for (let i = 0; i < 5; i++) bananas.push(spawnBanana());
-  eaten = 0; exploding = false; won = false; particles = [];
+  exploding = false; won = false; particles = [];
   winEl.classList.remove('show');
   hintEl.style.opacity = '1';
 }
@@ -149,7 +139,6 @@ function drawWater() {
   g.addColorStop(1, '#0e3d63');
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
-  // soft shimmer lines
   const t = performance.now() / 1000;
   ctx.strokeStyle = 'rgba(255,255,255,0.06)';
   ctx.lineWidth = 2;
@@ -171,7 +160,6 @@ function drawBanana(b) {
 }
 
 function drawCover(img, cx, cy, size) {
-  // cover-fit the image into a square of side `size` centered at cx,cy
   const iw = img.naturalWidth, ih = img.naturalHeight;
   const scale = Math.max(size / iw, size / ih);
   const dw = iw * scale, dh = ih * scale;
@@ -183,7 +171,6 @@ function drawBall() {
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
   ctx.closePath();
-  // subtle shadow ring
   ctx.shadowColor = 'rgba(0,0,0,0.35)';
   ctx.shadowBlur = 18; ctx.shadowOffsetY = 6;
   ctx.fillStyle = '#ffd54f';
@@ -193,14 +180,12 @@ function drawBall() {
   if (faceLoaded) {
     drawCover(face, ball.x, ball.y, ball.r * 2);
   } else {
-    // placeholder face if face.png isn't there yet
     ctx.fillStyle = '#ffe0a3'; ctx.fillRect(ball.x - ball.r, ball.y - ball.r, ball.r * 2, ball.r * 2);
     ctx.fillStyle = '#5a3d00'; ctx.font = `${ball.r}px sans-serif`;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('🙂', ball.x, ball.y);
   }
   ctx.restore();
-  // glossy ring
   ctx.beginPath();
   ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
   ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,0.85)';
@@ -260,23 +245,19 @@ function loop() {
   drawWater();
 
   if (!exploding) {
-    // physics
     ball.vx *= 0.99; ball.vy *= 0.99;
     ball.x += ball.vx; ball.y += ball.vy;
 
-    // wall bounces
     if (ball.x - ball.r < 0)  { ball.x = ball.r;     ball.vx = Math.abs(ball.vx) * 0.86; }
     if (ball.x + ball.r > W)  { ball.x = W - ball.r; ball.vx = -Math.abs(ball.vx) * 0.86; }
     if (ball.y - ball.r < 0)  { ball.y = ball.r;     ball.vy = Math.abs(ball.vy) * 0.86; }
     if (ball.y + ball.r > H)  { ball.y = H - ball.r; ball.vy = -Math.abs(ball.vy) * 0.86; }
 
-    // banana eating
     for (let i = bananas.length - 1; i >= 0; i--) {
       const b = bananas[i];
       if (Math.hypot(b.x - ball.x, b.y - ball.y) < ball.r + 16) {
         bananas.splice(i, 1);
         bananas.push(spawnBanana());
-        eaten++;
         ball.r += growthPerBanana();
         if (ball.r >= maxRadius()) { explode(); break; }
       }
