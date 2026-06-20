@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The 8 Design-Limiting Properties</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* ink + paper */
+    --paper:#eef1f5;
+    --paper-2:#e4e9f0;
+    --card:#ffffff;
+    --ink:#15233a;
+    --ink-2:#41506a;
+    --ink-3:#7888a0;
+    --line:#d3dae4;
+    --line-2:#c1cad8;
+    --accent:#2c63c4;       /* engineering cobalt */
+    --accent-soft:#e6edfb;
+    --good:#1f8a5b;
+    --good-soft:#e1f3ea;
+    --bad:#c0432f;
+    --bad-soft:#fbe7e2;
+    /* material family palette (used everywhere) */
+    --f-elast:#3a3f4b;      /* elastomers - tyre charcoal */
+    --f-poly:#3fa08e;       /* polymers - teal */
+    --f-glass:#6fb2cb;      /* glass - pale cyan */
+    --f-metal:#5b7c99;      /* metals - steel blue */
+    --f-ceram:#c0603a;      /* ceramics - fired clay */
+    --radius:14px;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+    --disp:"Space Grotesk",system-ui,sans-serif;
+    --body:"Inter",system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--paper);color:var(--ink);
+    font-family:var(--body);line-height:1.55;
+    background-image:
+      linear-gradient(var(--paper-2) 1px,transparent 1px),
+      linear-gradient(90deg,var(--paper-2) 1px,transparent 1px);
+    background-size:28px 28px;
+    background-position:-1px -1px;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px 80px}
+
+  /* ---- header ---- */
+  header{padding:46px 0 8px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:500}
+  h1{font-family:var(--disp);font-weight:700;font-size:clamp(28px,5.5vw,46px);line-height:1.04;margin:10px 0 6px;letter-spacing:-.02em}
+  h1 .sym{font-family:var(--mono);color:var(--accent);font-weight:700}
+  .lede{color:var(--ink-2);max-width:60ch;font-size:16px}
+
+  /* ---- nav tabs ---- */
+  nav{position:sticky;top:0;z-index:30;background:rgba(238,241,245,.86);backdrop-filter:blur(8px);
+      border-bottom:1px solid var(--line);margin:22px -20px 0;padding:0 20px}
+  .tabs{display:flex;gap:4px;max-width:920px;margin:0 auto;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{flex:0 0 auto;border:none;background:none;font-family:var(--disp);font-weight:600;font-size:14px;
+       color:var(--ink-3);padding:14px 14px 12px;cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+  .tab .n{font-family:var(--mono);font-size:11px;color:var(--ink-3);margin-right:6px}
+  .tab[aria-selected="true"] .n{color:var(--accent)}
+
+  .panel{display:none;animation:fade .35s ease}
+  .panel.active{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.panel{animation:none}*{scroll-behavior:auto}}
+
+  section{margin-top:30px}
+  h2{font-family:var(--disp);font-weight:700;font-size:23px;letter-spacing:-.01em;margin:0 0 4px}
+  h3{font-family:var(--disp);font-weight:600;font-size:17px;margin:0 0 6px}
+  p{margin:0 0 12px}
+  .muted{color:var(--ink-2)}
+  .sym{font-family:var(--mono);font-weight:700}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+        padding:22px;margin-top:16px;box-shadow:0 1px 0 rgba(21,35,58,.03)}
+  .pad{padding:22px}
+
+  /* intro big idea blocks */
+  .trio{display:grid;grid-template-columns:1fr;gap:14px;margin-top:8px}
+  .trio-card{border:1px solid var(--line);border-radius:12px;padding:18px;background:var(--card);position:relative;overflow:hidden}
+  .trio-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--accent)}
+  .trio-card .tag{font-family:var(--mono);font-size:12px;letter-spacing:.05em;color:var(--accent);font-weight:500;text-transform:uppercase}
+  .trio-card h3{margin-top:6px}
+  .trio-card h3 .sym{color:var(--accent);font-size:.85em;margin-left:6px}
+  .trio-card .word{font-family:var(--disp);font-weight:700;font-size:20px}
+
+  /* bend demo */
+  .bend{display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start;margin-top:8px}
+  .bend figure{margin:0;flex:1 1 240px;text-align:center}
+  .bend svg{width:100%;height:auto;max-width:260px;background:#f7f9fc;border:1px solid var(--line);border-radius:10px}
+  .bend figcaption{font-size:13px;color:var(--ink-2);margin-top:6px}
+  .bend figcaption b{color:var(--ink);font-family:var(--disp)}
+
+  /* property cards */
+  .prop{scroll-margin-top:70px}
+  .prop-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .badge{font-family:var(--mono);font-weight:700;font-size:26px;color:#fff;background:var(--accent);
+         padding:6px 12px;border-radius:10px;line-height:1;display:inline-flex;align-items:center}
+  .badge.thermal{background:#c0603a}
+  .prop-name{font-family:var(--disp);font-weight:700;font-size:20px}
+  .prop-unit{font-family:var(--mono);font-size:13px;color:var(--ink-3);background:var(--paper-2);padding:2px 8px;border-radius:6px}
+  .prop-tag{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .grid2{display:grid;grid-template-columns:1fr;gap:4px 26px;margin-top:14px}
+  @media(min-width:620px){.grid2{grid-template-columns:1fr 1fr}}
+  .field{padding:10px 0;border-top:1px dashed var(--line)}
+  .field .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:500}
+  .field .v{font-size:14.5px;color:var(--ink-2)}
+  .field .v b{color:var(--ink)}
+  .detect{background:var(--accent-soft);border-radius:10px;padding:12px 14px;margin-top:14px;font-size:14.5px}
+  .detect .k{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;display:block;margin-bottom:3px}
+
+  /* spectrum */
+  .spectrum{margin-top:16px}
+  .spectrum .axis{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-2);margin-bottom:6px}
+  .spectrum .axis b{font-family:var(--disp);color:var(--ink)}
+  .bar{display:flex;gap:4px}
+  .chip{flex:1;text-align:center;padding:9px 4px;border-radius:7px;color:#fff;font-family:var(--disp);
+        font-weight:600;font-size:12.5px;letter-spacing:.01em;position:relative}
+  .chip small{display:block;font-family:var(--mono);font-weight:400;font-size:10px;opacity:.85}
+  .grad{height:6px;border-radius:4px;margin-top:7px;
+        background:linear-gradient(90deg,var(--line-2),var(--accent))}
+
+  /* legend */
+  .legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;margin-top:6px}
+  .legend span{display:inline-flex;align-items:center;gap:6px;color:var(--ink-2)}
+  .dot{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  /* connect: cascade */
+  .cascade{display:grid;grid-template-columns:1fr;gap:14px;margin-top:8px}
+  @media(min-width:720px){.cascade{grid-template-columns:repeat(3,1fr)}}
+  .fam{border:1px solid var(--line);border-radius:12px;padding:16px;background:var(--card);border-top:4px solid}
+  .fam h3{font-size:16px}
+  .fam .bond{font-family:var(--mono);font-size:12px;color:var(--ink-2);margin:4px 0 10px}
+  .fam ul{margin:0;padding-left:0;list-style:none;font-size:13.5px}
+  .fam li{padding:4px 0;border-top:1px dashed var(--line);display:flex;gap:8px;align-items:baseline}
+  .fam li .sym{color:var(--accent);min-width:34px;display:inline-block}
+  .arrow{color:var(--ink-3)}
+
+  /* vocab table */
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3);font-weight:500}
+  td .word{font-family:var(--disp);font-weight:600}
+  td .maps{font-family:var(--mono);color:var(--accent);font-weight:700}
+
+  /* quiz */
+  .quiz-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+  .progress{font-family:var(--mono);font-size:13px;color:var(--ink-2)}
+  .scorebar{height:6px;background:var(--paper-2);border-radius:4px;overflow:hidden;margin:6px 0 18px}
+  .scorebar>div{height:100%;background:var(--accent);width:0;transition:width .4s ease}
+  .q-text{font-family:var(--disp);font-weight:600;font-size:18px;margin:0 0 16px;line-height:1.35}
+  .q-text .sym{color:var(--accent)}
+  .opts{display:grid;gap:10px}
+  .opt{text-align:left;background:var(--card);border:1.5px solid var(--line);border-radius:10px;
+       padding:13px 15px;font-size:15px;font-family:var(--body);color:var(--ink);cursor:pointer;
+       transition:border-color .15s,background .15s;display:flex;gap:11px;align-items:flex-start}
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt:disabled{cursor:default}
+  .opt .mark{font-family:var(--mono);font-weight:700;color:var(--ink-3);flex:0 0 auto}
+  .opt.correct{border-color:var(--good);background:var(--good-soft)}
+  .opt.correct .mark{color:var(--good)}
+  .opt.wrong{border-color:var(--bad);background:var(--bad-soft)}
+  .opt.wrong .mark{color:var(--bad)}
+  .explain{margin-top:14px;border-radius:10px;padding:14px 16px;font-size:14.5px;display:none;border-left:4px solid}
+  .explain.show{display:block;animation:fade .25s ease}
+  .explain.ok{background:var(--good-soft);border-color:var(--good)}
+  .explain.no{background:var(--bad-soft);border-color:var(--bad)}
+  .explain .verdict{font-family:var(--disp);font-weight:700;margin-bottom:4px}
+  .explain.ok .verdict{color:var(--good)}
+  .explain.no .verdict{color:var(--bad)}
+  .btnrow{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
+  .btn{font-family:var(--disp);font-weight:600;font-size:15px;border:none;border-radius:10px;
+       padding:11px 20px;cursor:pointer;background:var(--accent);color:#fff}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn.ghost{background:transparent;color:var(--accent);border:1.5px solid var(--line-2)}
+  .btn.ghost:hover{border-color:var(--accent)}
+  .result{text-align:center;padding:18px 0}
+  .result .big{font-family:var(--mono);font-weight:700;font-size:48px;color:var(--accent);line-height:1}
+  .result .msg{font-family:var(--disp);font-weight:600;font-size:18px;margin:8px 0}
+  .review{margin-top:18px;display:grid;gap:8px}
+  .rev-item{font-size:13.5px;border:1px solid var(--line);border-radius:9px;padding:11px 13px;display:flex;gap:10px}
+  .rev-item .ic{flex:0 0 auto;font-family:var(--mono);font-weight:700}
+  .rev-item.ok .ic{color:var(--good)} .rev-item.no .ic{color:var(--bad)}
+
+  .note{font-size:13px;color:var(--ink-3);font-style:italic;margin-top:10px}
+  :focus-visible{outline:2.5px solid var(--accent);outline-offset:2px;border-radius:4px}
+  .footer{margin-top:40px;padding-top:18px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink-3);font-family:var(--mono)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Ashby · design-limiting properties</div>
+    <h1>Stiff, strong, tough — and six more words<br>that <span class="sym">aren't</span> the same thing.</h1>
+    <p class="lede">Eight properties decide whether a material is right for a job. The trick isn't memorising them — it's telling them apart, knowing <em>why</em> a material family ranks where it does, and spotting which one a problem is really about.</p>
+  </header>
+
+  <nav>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="idea"><span class="n">01</span>Start here</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="mech"><span class="n">02</span>Mechanical · 4</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="therm"><span class="n">03</span>Thermal · 4</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="connect"><span class="n">04</span>How they connect</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="quiz"><span class="n">05</span>Test yourself</button>
+    </div>
+  </nav>
+
+  <!-- ============ 01 START HERE ============ -->
+  <div class="panel active" id="idea">
+    <section>
+      <h2>The one confusion to kill first</h2>
+      <p class="muted">Push down on a long bar resting on two supports. Three different things can go wrong — and people call them all "it's not good enough." They are not the same property.</p>
+
+      <div class="trio">
+        <div class="trio-card">
+          <span class="tag">resists bending — and springs back</span>
+          <h3>Stiffness <span class="sym">E</span></h3>
+          <p class="muted" style="margin:6px 0 0">How much it <b>flexes elastically</b> under load. A low-E bar sags a lot but recovers fully when you let go. Nothing is damaged — it's just bendy. <span class="word" style="font-size:15px">Floppy / springy = low E.</span></p>
+        </div>
+        <div class="trio-card">
+          <span class="tag">how far before damage is permanent</span>
+          <h3>Strength <span class="sym">σ<sub>y</sub></span></h3>
+          <p class="muted" style="margin:6px 0 0">The stress where it <b>stops springing back</b> — it stays bent (yields) or breaks. Push past σ<sub>y</sub> and the damage is permanent. <span class="word" style="font-size:15px">"Bends and stays bent" = passed σ<sub>y</sub>.</span></p>
+        </div>
+        <div class="trio-card">
+          <span class="tag">does a crack run, or does it stop</span>
+          <h3>Toughness <span class="sym">K<sub>Ic</sub></span></h3>
+          <p class="muted" style="margin:6px 0 0">Resistance to a <b>crack spreading</b> from a flaw. Low toughness = it shatters with no warning, even if it was stiff and strong. <span class="word" style="font-size:15px">Brittle = low K<sub>Ic</sub>.</span></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Why "strong" ≠ "tough" — the example that fixes it</h3>
+        <div class="bend">
+          <figure>
+            <svg viewBox="0 0 200 110" aria-label="glass rod snapping cleanly">
+              <line x1="20" y1="55" x2="92" y2="55" stroke="#6fb2cb" stroke-width="9" stroke-linecap="round"/>
+              <line x1="108" y1="55" x2="180" y2="55" stroke="#6fb2cb" stroke-width="9" stroke-linecap="round"/>
+              <path d="M96 40 L100 55 L96 70 M104 40 L100 55 L104 70" stroke="#c0432f" stroke-width="2.5" fill="none"/>
+              <text x="100" y="92" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#15233a">snaps clean — no warning</text>
+            </svg>
+            <figcaption><b>Glass / ceramic.</b> Stiff (won't flex) and can be strong, yet <b>K<sub>Ic</sub> is tiny</b>. A flaw → instant fracture.</figcaption>
+          </figure>
+          <figure>
+            <svg viewBox="0 0 200 110" aria-label="metal bar bending into a curve">
+              <path d="M20 70 Q100 20 180 70" stroke="#5b7c99" stroke-width="9" fill="none" stroke-linecap="round"/>
+              <text x="100" y="98" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#15233a">bends, absorbs energy</text>
+            </svg>
+            <figcaption><b>Ductile metal.</b> Maybe less stiff, but <b>high K<sub>Ic</sub></b>: it deforms and soaks up energy instead of cracking.</figcaption>
+          </figure>
+        </div>
+        <p class="note">A material can be high on stiffness and strength yet shatter the instant a crack starts. That third axis — toughness — is what "brittle" is really pointing at.</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>The second confusion: heat <em>flow</em> vs heat <em>speed</em></h2>
+      <div class="trio" style="margin-top:14px">
+        <div class="trio-card">
+          <span class="tag">steady-state heat throughput</span>
+          <h3>Conductivity <span class="sym">λ</span></h3>
+          <p class="muted" style="margin:6px 0 0">Once things settle, <b>how many watts flow through</b> per degree of difference. High λ = a great heat path (copper heat-sink). Low λ = an insulator (foam cup).</p>
+        </div>
+        <div class="trio-card">
+          <span class="tag">how fast the temperature itself moves</span>
+          <h3>Diffusivity <span class="sym">a</span></h3>
+          <p class="muted" style="margin:6px 0 0">During the transient, <b>how quickly a temperature change reaches the far side</b>. It folds in heat storage: <span class="sym" style="font-size:13px">a = λ / (ρ·C<sub>p</sub>)</span>. A material can conduct decently yet respond slowly because it stores a lot of heat.</p>
+        </div>
+      </div>
+      <p class="note">λ answers "how much heat per second?" — a answers "how fast does the warmth travel?" Same idea split into a steady part and a how-quick part.</p>
+    </section>
+
+    <section class="card">
+      <h3>Reading the rest of this</h3>
+      <p class="muted" style="margin-bottom:0">The next two tabs take each property one at a time: a plain definition, the everyday word it hides behind, its units, a <b>detective question</b> for spotting it in a problem, and a <b>spectrum</b> showing where the material families land — colour-coded so the ranking sticks. Then <b>How they connect</b> explains why the rankings come out the way they do, and <b>Test yourself</b> checks it.</p>
+    </section>
+  </div>
+
+  <!-- ============ 02 MECHANICAL ============ -->
+  <div class="panel" id="mech">
+    <section>
+      <h2>Mechanical — how it carries load</h2>
+      <p class="muted">Stiff (Slack) · Strong (Weak) · Tough (Bros) · Heavy (Light). The aeroplane wing on your slide fails a different way for each one.</p>
+    </section>
+    <div id="mech-cards"></div>
+  </div>
+
+  <!-- ============ 03 THERMAL ============ -->
+  <div class="panel" id="therm">
+    <section>
+      <h2>Thermal — how it copes with heat</h2>
+      <p class="muted">The four pans on your slide: surviving the flame (T<sub>max</sub>), warping (α), heating evenly (λ), and how fast it all happens (a).</p>
+    </section>
+    <div id="therm-cards"></div>
+  </div>
+
+  <!-- ============ 04 CONNECT ============ -->
+  <div class="panel" id="connect">
+    <section>
+      <h2>Why the rankings come out that way</h2>
+      <p class="muted">Almost everything traces back to one thing: <b>how strong the bonds between atoms are</b>. Strong, deep bonds are hard to stretch (stiff), hard to break apart (high melting point), and hold atoms tightly so they barely expand. Read each family as a consequence of its bonding.</p>
+
+      <div class="cascade">
+        <div class="fam" style="border-top-color:var(--f-ceram)">
+          <h3>Ceramics &amp; glass</h3>
+          <div class="bond">strong covalent / ionic bonds, no moving dislocations</div>
+          <ul>
+            <li><span class="sym">E</span><span>high — bonds resist stretching → very stiff</span></li>
+            <li><span class="sym">σ<sub>y</sub></span><span>high in compression (hard)</span></li>
+            <li><span class="sym">K<sub>Ic</sub></span><span><b>low</b> — no plastic flow → brittle, shatters</span></li>
+            <li><span class="sym">T<sub>max</sub></span><span>high — lots of energy to break bonds</span></li>
+            <li><span class="sym">α</span><span>low — atoms sit tight in a deep well</span></li>
+          </ul>
+        </div>
+        <div class="fam" style="border-top-color:var(--f-metal)">
+          <h3>Metals</h3>
+          <div class="bond">metallic bonds + free electrons + mobile dislocations</div>
+          <ul>
+            <li><span class="sym">E</span><span>moderate–high</span></li>
+            <li><span class="sym">K<sub>Ic</sub></span><span><b>high</b> — dislocations slip and absorb energy → ductile, tough</span></li>
+            <li><span class="sym">λ, a</span><span>high — free electrons carry heat fast</span></li>
+            <li><span class="sym">ρ</span><span>high — densely packed heavy atoms</span></li>
+            <li><span class="sym">α</span><span>moderate</span></li>
+          </ul>
+        </div>
+        <div class="fam" style="border-top-color:var(--f-poly)">
+          <h3>Polymers &amp; elastomers</h3>
+          <div class="bond">strong chains, but <b>weak</b> van der Waals between them</div>
+          <ul>
+            <li><span class="sym">E</span><span>low — chains uncoil / slide easily → floppy</span></li>
+            <li><span class="sym">T<sub>max</sub></span><span>low — weak secondary bonds soften early</span></li>
+            <li><span class="sym">α</span><span>high — loose chains, lots of free volume</span></li>
+            <li><span class="sym">λ, a</span><span>low — no free electrons → insulators</span></li>
+            <li><span class="sym">ρ</span><span>low — light atoms, open structure</span></li>
+          </ul>
+        </div>
+      </div>
+      <p class="note">Notice the pairings that fall out for free: weak inter-chain bonds explain <b>both</b> low T<sub>max</sub> <b>and</b> high α in polymers. Strong bonds in ceramics explain high E, high T<sub>max</sub> <b>and</b> low α together. Bonding is the hidden variable behind several properties at once.</p>
+    </section>
+
+    <section>
+      <h2>Everyday word → formal property</h2>
+      <p class="muted">The vocabulary people actually use, decoded. This is the translation layer between "ceramics are hard" and σ<sub>y</sub>.</p>
+      <table>
+        <thead><tr><th>They say…</th><th>They mean…</th><th>Property</th></tr></thead>
+        <tbody id="vocab-rows"></tbody>
+      </table>
+      <p class="note">Watch the traps: <b>hard</b> ≠ <b>tough</b> (diamond is both hard and brittle), and <b>strong</b> ≠ <b>stiff</b> (a guitar string is strong but you can deflect it easily).</p>
+    </section>
+
+    <section class="card">
+      <h3>The two ratios engineers actually plot</h3>
+      <p class="muted" style="margin-bottom:0">Raw properties rarely decide a design — ratios do, because most jobs are "the most X per kilogram." <b>Specific stiffness</b> <span class="sym">E/ρ</span> and <b>specific strength</b> <span class="sym">σ<sub>y</sub>/ρ</span> are why carbon fibre and aluminium beat steel in aircraft despite steel's higher absolute numbers. Whenever weight matters, divide by ρ before you compare.</p>
+    </section>
+  </div>
+
+  <!-- ============ 05 QUIZ ============ -->
+  <div class="panel" id="quiz">
+    <section>
+      <div class="quiz-top">
+        <h2 style="margin:0">Test yourself</h2>
+        <div class="progress" id="progress">Q1 / 15</div>
+      </div>
+      <div class="scorebar"><div id="scorefill"></div></div>
+      <div id="quiz-body"></div>
+    </section>
+  </div>
+
+  <div class="footer">8 design-limiting properties · mechanical (E, σ<sub>y</sub>, K<sub>Ic</sub>, ρ) + thermal (T<sub>max</sub>, α, λ, a) · built for intuition, not memorisation</div>
+</div>
+
+<script>
+/* ---------- material family meta ---------- */
+const FAM = {
+  elast:{name:"Elastomers",c:"var(--f-elast)"},
+  poly :{name:"Polymers",  c:"var(--f-poly)"},
+  glass:{name:"Glass",     c:"var(--f-glass)"},
+  metal:{name:"Metals",    c:"var(--f-metal)"},
+  ceram:{name:"Ceramics",  c:"var(--f-ceram)"},
+};
+
+/* ---------- the 8 properties ---------- */
+/* spectrum: families listed LOW -> HIGH; ex = a tiny example value */
+const PROPS = [
+  {
+    g:"mech", sym:"E", name:"Young's modulus", word:"Stiffness", unit:"GPa",
+    def:"Resistance to <b>elastic</b> (fully reversible) deformation — the slope of stress vs strain before anything permanent happens.",
+    feel:"Push on it: does it flex, then spring back? Low E = bends a lot but recovers. Stiffness says nothing about whether it breaks.",
+    high:"barely deflects (diamond, alumina)", low:"flexes easily, springs back (rubber, foam)",
+    detect:"Anything about deflection, sag, wobble, vibration, or holding shape under load — and it recovers afterwards. The sagging wing: E too low.",
+    watch:"Don't confuse with strength: a low-E thing can be unbreakable, just bendy.",
+    lowLab:"floppy", highLab:"rigid",
+    spec:[["elast","~0.01"],["poly","~2"],["glass","~70"],["metal","~70–210"],["ceram","~150–450"]]
+  },
+  {
+    g:"mech", sym:"σ_y", name:"Yield strength", word:"Strength", unit:"MPa",
+    def:"The stress at which deformation stops being reversible — the material yields (stays bent) or fractures.",
+    feel:"Keep pushing past the elastic region: σ<sub>y</sub> is the line where it stays bent or breaks. Cross it and the damage is permanent.",
+    high:"takes huge load before permanent damage (hardened steel)", low:"deforms/breaks under modest load (soft polymer)",
+    detect:"Load limits, permanent dents, 'how much before it gives'. The wing folding for good: σ<sub>y</sub> too low. Hardness ≈ 3·σ<sub>y</sub>.",
+    watch:"Ceramics/glass are very strong in compression but flaw-limited (weak) in tension — strength is direction-sensitive for them.",
+    lowLab:"yields early", highLab:"holds heavy loads",
+    spec:[["elast","low"],["poly","~50"],["glass","flaw-ltd"],["metal","~200–1500"],["ceram","high (compr.)"]]
+  },
+  {
+    g:"mech", sym:"K_Ic", name:"Fracture toughness", word:"Toughness", unit:"MPa·√m",
+    def:"Resistance to a <b>crack propagating</b> from an existing flaw — the energy soaked up before fracture.",
+    feel:"Nick it, drop it, hit it: does the crack run and shatter, or does it blunt and stop? This is exactly what 'brittle' vs 'tough' means.",
+    high:"cracks blunt, it bends/absorbs energy (steel)", low:"a flaw runs instantly — shatters (glass, ceramic)",
+    detect:"Impact, drops, notches, shattering, 'no warning before failure'. The wing snapping off from a crack: K<sub>Ic</sub> too low.",
+    watch:"Independent of stiffness and strength. Diamond: high E, high σ<sub>y</sub>, yet a tap can cleave it — low K<sub>Ic</sub>.",
+    lowLab:"brittle / shatters", highLab:"tough / ductile",
+    spec:[["glass","~0.7"],["ceram","~1–5"],["poly","~1–5"],["elast","tears slowly"],["metal","~20–150"]]
+  },
+  {
+    g:"mech", sym:"ρ", name:"Density", word:"Heaviness", unit:"kg/m³",
+    def:"Mass per unit volume — how much the same shape weighs.",
+    feel:"Heft it. Rarely the goal on its own; usually it's the denominator in 'per kilogram' ratios.",
+    high:"heavy for its size (tungsten, lead, steel)", low:"light (foam, wood, magnesium)",
+    detect:"Anything where weight matters: aircraft, vehicles, portable kit. The plane too heavy to fly / sinking into the runway: ρ too high.",
+    watch:"Almost always used as E/ρ (specific stiffness) or σ<sub>y</sub>/ρ (specific strength) — that's why light alloys beat steel in flight.",
+    lowLab:"feather", highLab:"dense",
+    spec:[["poly","~1.0"],["elast","~1.1"],["glass","~2.5"],["ceram","~3–4"],["metal","~2.7–19"]]
+  },
+  {
+    g:"therm", sym:"T_max", name:"Max service temperature", word:"Heat ceiling", unit:"°C",
+    def:"The highest temperature it can work at before it softens, oxidises, degrades or melts and loses its properties.",
+    feel:"Turn up the heat: at what point does it give up the job? For polymers that's often surprisingly low.",
+    high:"survives furnaces and engines (ceramics, refractory metals)", low:"softens in an oven (most polymers, <150 °C)",
+    detect:"Anything hot — engine parts, cookware, furnaces, exhausts, soldering. The melting pan: T<sub>max</sub> too low.",
+    watch:"Tracks bond strength → ceramics highest, polymers lowest (weak inter-chain bonds soften early).",
+    lowLab:"melts early", highLab:"refractory",
+    spec:[["elast","~100"],["poly","~150"],["glass","~500–700"],["metal","~400–1500"],["ceram","~1500–2000+"]]
+  },
+  {
+    g:"therm", sym:"α", name:"Thermal expansion coeff.", word:"Growth-on-heating", unit:"10⁻⁶/K",
+    def:"Fractional change in size per degree of temperature change.",
+    feel:"Heat it: how much does it grow? Mismatched α between joined parts is what warps, cracks and loosens fits.",
+    high:"expands a lot — warps, needs gaps (polymers, soft metals)", low:"barely moves (ceramics, Invar, glass-ceramic)",
+    detect:"Temperature swings + tight tolerances + dissimilar materials bonded together → thermal stress, warping, expansion joints, seals.",
+    watch:"High α with low K<sub>Ic</sub> = thermal-shock prone: it expands unevenly and can't tolerate the crack (cold thick glass + boiling water).",
+    lowLab:"barely expands", highLab:"expands a lot",
+    spec:[["ceram","~3–8"],["glass","~3–9"],["metal","~10–25"],["poly","~50–200"],["elast","very high"]]
+  },
+  {
+    g:"therm", sym:"λ", name:"Thermal conductivity", word:"Heat flow rate", unit:"W/m·K",
+    def:"Steady-state rate of heat flow through the material per unit temperature gradient.",
+    feel:"Heat one end, hold the other: once settled, how much heat is getting through? High = good heat path; low = insulator.",
+    high:"spreads heat fast (copper, aluminium)", low:"blocks heat (foam, polymer, oxide ceramic)",
+    detect:"Steady heat transfer — heat-sinks and pan bodies want HIGH; insulation, handles and oven mitts want LOW. The evenly-heated pan: high λ.",
+    watch:"This is a throughput rate (watts), not a speed. Don't confuse with diffusivity.",
+    lowLab:"insulates", highLab:"conducts",
+    spec:[["poly","~0.2"],["elast","~0.3"],["glass","~1"],["ceram","~2–30"],["metal","~15–400"]]
+  },
+  {
+    g:"therm", sym:"a", name:"Thermal diffusivity", word:"Heat-change speed", unit:"m²/s",
+    def:"How fast a <b>temperature change</b> propagates through the material. Combines conduction with heat storage: a = λ / (ρ·C<sub>p</sub>).",
+    feel:"Flash-heat one face: how quickly does the other side feel it, and how fast does the whole thing reach equilibrium?",
+    high:"temperature equalises quickly (metals)", low:"slow to respond, stores heat (dense / high-Cp materials)",
+    detect:"Transient timing — thermal shock, how fast a part heats through, quench rates. Not 'how much heat' but 'how fast the temperature moves'.",
+    watch:"Two materials with equal λ can have very different a if one stores far more heat (high ρ·C<sub>p</sub>) — that's the whole point of diffusivity.",
+    lowLab:"sluggish", highLab:"responds fast",
+    spec:[["poly","low"],["glass","low"],["ceram","mod"],["metal","high"]]
+  },
+];
+
+/* ---------- vocab table ---------- */
+const VOCAB = [
+  ["“It's hard”","Resists scratching &amp; denting","σ_y","(hardness ≈ 3·σ_y)"],
+  ["“It's brittle”","Shatters, no warning","K_Ic","low"],
+  ["“It's stiff / rigid”","Won't flex under load","E","high"],
+  ["“It's floppy / springy”","Flexes a lot, recovers","E","low"],
+  ["“It's tough”","Absorbs impact, won't crack","K_Ic","high"],
+  ["“It's ductile / malleable”","Bends &amp; draws without breaking","K_Ic","high + yields"],
+  ["“It's strong”","Carries big load before failing","σ_y","high"],
+  ["“It's heat-proof”","Works hot without softening","T_max","high"],
+  ["“It's a good insulator”","Doesn't pass heat","λ","low"],
+];
+
+/* ---------- render property cards ---------- */
+function specHTML(p){
+  const chips = p.spec.map(([f,ex])=>{
+    const m = FAM[f];
+    return `<div class="chip" style="background:${m.c}">${m.name}<small>${ex}</small></div>`;
+  }).join("");
+  return `<div class="spectrum">
+    <div class="axis"><span><b>Low ${p.sym==='α'?'':''}</b> — ${p.lowLab}</span><span>${p.highLab} — <b>High</b></span></div>
+    <div class="bar">${chips}</div>
+    <div class="grad"></div>
+  </div>`;
+}
+function symFmt(s){ return s.replace(/_(\w+)/,"<sub>$1</sub>"); }
+function cardHTML(p){
+  const thermal = p.g==="therm";
+  return `<div class="card prop" id="p-${p.sym}">
+    <div class="prop-head">
+      <span class="badge ${thermal?'thermal':''}">${symFmt(p.sym)}</span>
+      <div>
+        <div class="prop-name">${p.name} <span class="prop-tag">— “${p.word}”</span></div>
+        <span class="prop-unit">${p.unit}</span>
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field"><div class="k">What it is</div><div class="v">${p.def}</div></div>
+      <div class="field"><div class="k">The feel</div><div class="v">${p.feel}</div></div>
+      <div class="field"><div class="k">High means</div><div class="v">${p.high}</div></div>
+      <div class="field"><div class="k">Low means</div><div class="v">${p.low}</div></div>
+    </div>
+    <div class="detect"><span class="k">Detective question — is this the property?</span>${p.detect}</div>
+    <div class="field" style="border-top:none;padding-bottom:0"><div class="k">Watch out</div><div class="v">${p.watch}</div></div>
+    ${specHTML(p)}
+  </div>`;
+}
+document.getElementById("mech-cards").innerHTML  = PROPS.filter(p=>p.g==="mech").map(cardHTML).join("");
+document.getElementById("therm-cards").innerHTML = PROPS.filter(p=>p.g==="therm").map(cardHTML).join("");
+
+/* add legend under each group */
+function legendHTML(){
+  return `<div class="card" style="padding:14px 18px"><div class="legend">`+
+    Object.values(FAM).map(m=>`<span><i class="dot" style="background:${m.c}"></i>${m.name}</span>`).join("")+
+    `<span style="color:var(--ink-3)">colour = material family, used on every spectrum</span></div></div>`;
+}
+document.getElementById("mech-cards").insertAdjacentHTML("afterbegin",legendHTML());
+
+/* vocab rows */
+document.getElementById("vocab-rows").innerHTML = VOCAB.map(([say,mean,prop,tag])=>
+  `<tr><td><span class="word">${say}</span></td><td>${mean}</td><td><span class="maps">${symFmt(prop)}</span> <span style="color:var(--ink-3);font-size:12px">${tag}</span></td></tr>`
+).join("");
+
+/* ---------- tabs ---------- */
+const tabs = [...document.querySelectorAll(".tab")];
+const panels = [...document.querySelectorAll(".panel")];
+tabs.forEach(t=>t.addEventListener("click",()=>{
+  tabs.forEach(x=>x.setAttribute("aria-selected", x===t));
+  panels.forEach(p=>p.classList.toggle("active", p.id===t.dataset.tab));
+  window.scrollTo({top:0,behavior:"smooth"});
+}));
+
+/* ============ QUIZ ============ */
+const QUIZ = [
+  { q:"A ceramic mug doesn't flex at all when you grip it hard, but it shatters into pieces the moment it hits the floor. Which property is the low one?",
+    o:["E (stiffness)","σ_y (strength)","K_Ic (toughness)","α (expansion)"], a:2,
+    e:"Stiffness is fine — it didn't flex. What failed is resistance to a crack running from the impact point: that's <b>K_Ic</b>. Low toughness is exactly what 'brittle' means." },
+
+  { q:"A plastic ruler bends into a big arc, then springs back perfectly straight when you release it. Nothing is damaged. Which property is low?",
+    o:["E (stiffness)","σ_y (strength)","K_Ic (toughness)","T_max"], a:0,
+    e:"Large but fully recoverable deflection = low <b>E</b>. Since nothing became permanent and it didn't crack, strength and toughness aren't the story." },
+
+  { q:"You bend that same ruler too far and now it has a permanent white crease — it stays bent. What did you exceed?",
+    o:["E","σ_y (yield strength)","K_Ic","λ"], a:1,
+    e:"Permanent (plastic) deformation means you pushed past the yield point, <b>σ_y</b>. Below σ_y it springs back; above it, the damage stays." },
+
+  { q:"For a frying pan you want the base to heat evenly and fast, but the handle to stay cool enough to grab. The base wants HIGH ___ and the handle wants LOW ___.",
+    o:["α","λ (conductivity)","K_Ic","ρ"], a:1,
+    e:"Steady heat throughput is <b>λ</b>. High λ in the base spreads heat evenly; low λ in the handle blocks it from reaching your hand." },
+
+  { q:"A 300-metre steel bridge is built with toothed gaps at its joints. These gaps exist to accommodate which property?",
+    o:["σ_y","K_Ic","α (thermal expansion)","λ"], a:2,
+    e:"Steel grows and shrinks with temperature. The gaps absorb that length change — they're sized by the thermal expansion coefficient <b>α</b>." },
+
+  { q:"Two metal blocks have identical thermal conductivity λ. You flash-heat one face of each and time how fast the opposite face warms up. Which property actually governs that timing?",
+    o:["λ again — they'll be identical","a (thermal diffusivity)","T_max","σ_y"], a:1,
+    e:"Transient speed is <b>a = λ/(ρ·C_p)</b>. Equal λ doesn't mean equal response — the block that stores more heat (higher ρ·C_p) warms through more slowly. That's the whole reason diffusivity is a separate property." },
+
+  { q:"In everyday speech, calling a material 'hard' (resists scratching and denting) corresponds most directly to which formal property?",
+    o:["E","σ_y (strength)","K_Ic","a"], a:1,
+    e:"Hardness ≈ 3·<b>σ_y</b> — it's essentially strength measured at a surface indent. Note 'hard' says nothing about toughness: diamond is the hardest thing around and still cleaves." },
+
+  { q:"Glass and hardened steel can both be 'strong', yet you'd never forge a hammer head from glass — under repeated impact it would do something steel won't. The deciding property is:",
+    o:["E","ρ","K_Ic (toughness)","T_max"], a:2,
+    e:"Impact resistance is <b>K_Ic</b>. Glass has almost none, so a blow runs a crack and it shatters. Strength alone never protects against brittle fracture." },
+
+  { q:"An aerospace team wants wing spars that are very stiff but as light as possible. The single figure of merit that captures 'stiffness per weight' is:",
+    o:["E on its own","ρ on its own","E / ρ (specific stiffness)","σ_y / E"], a:2,
+    e:"When weight matters you divide by density: <b>E/ρ</b>. This is why aluminium and carbon-fibre beat steel in flight despite steel's higher absolute E." },
+
+  { q:"A rubber band isn't stiff and isn't especially strong, yet it's genuinely hard to make it snap or tear through. It's high in which property?",
+    o:["E","σ_y","K_Ic (toughness)","λ"], a:2,
+    e:"Toughness <b>K_Ic</b> is resistance to a crack/tear propagating — and it's independent of stiffness and strength. Rubber proves tough ≠ stiff and tough ≠ strong." },
+
+  { q:"A polymer phone case left in a hot car or oven at 180 °C goes soft and warps out of shape. The limiting property here is:",
+    o:["T_max (max service temperature)","K_Ic","E","ρ"], a:0,
+    e:"It exceeded the temperature where the material keeps its properties: <b>T_max</b>. Polymers' weak inter-chain bonds give them low T_max, often well under 200 °C." },
+
+  { q:"Pouring boiling water into a cold, thick glass cracks it (thermal shock). Which combination best explains why?",
+    o:["High λ alone","Low ρ alone","High α together with low K_Ic","High a alone"], a:2,
+    e:"The surface expands fast while the cold interior doesn't (high <b>α</b> + uneven heating), creating stress — and glass can't tolerate the resulting crack (<b>low K_Ic</b>). It's the pairing that does the damage." },
+
+  { q:"Diamond is one of the stiffest, hardest materials known, yet a jeweller can split it with a precise tap along a cleavage plane. So diamond is high in E and σ_y but relatively LOW in:",
+    o:["α","K_Ic (toughness)","T_max","λ"], a:1,
+    e:"That cleavage is low <b>K_Ic</b>. Stiffness and hardness are sky-high, but with no way to absorb crack energy, a well-aimed flaw splits it — toughness is a separate axis." },
+
+  { q:"You want a coffee cup whose outer wall stays cool enough to hold. For the cup wall you want LOW ___ so heat doesn't flow out to your hand.",
+    o:["E","λ (conductivity)","σ_y","a"], a:1,
+    e:"Insulation is low <b>λ</b> — minimal steady heat throughput. That's why foam and ceramic cups (low λ) beat a metal mug (high λ) for holding hot drinks." },
+
+  { q:"Polymers tend to have BOTH a low T_max AND a high α. These two facts share a single underlying cause. What is it?",
+    o:["Free electrons carrying energy","Weak van der Waals bonds between the chains","Mobile dislocations","High density packing"], a:1,
+    e:"The chains are held to each other by weak secondary (van der Waals) bonds. Those soften at low temperature (<b>low T_max</b>) and let the loose structure expand a lot (<b>high α</b>) — one cause, two properties. Bonding is the hidden variable." },
+];
+
+let qi=0, score=0, answered=false, results=[];
+const body=document.getElementById("quiz-body");
+const prog=document.getElementById("progress");
+const fill=document.getElementById("scorefill");
+
+function renderQ(){
+  answered=false;
+  const item=QUIZ[qi];
+  prog.textContent=`Q${qi+1} / ${QUIZ.length}`;
+  fill.style.width=`${(qi/QUIZ.length)*100}%`;
+  const qtext=item.q.replace(/\b(E|σ_y|K_Ic|α|λ|ρ|a|T_max)\b/g, m=>`<span class="sym">${symFmt(m)}</span>`);
+  body.innerHTML=`
+    <div class="q-text">${qtext}</div>
+    <div class="opts" id="opts">
+      ${item.o.map((o,i)=>{
+        const ol=o.replace(/\b(E|σ_y|K_Ic|α|λ|ρ|a|T_max)\b/g, m=>`<span class="sym">${symFmt(m)}</span>`);
+        return `<button class="opt" data-i="${i}"><span class="mark">${String.fromCharCode(65+i)}</span><span>${ol}</span></button>`;
+      }).join("")}
+    </div>
+    <div class="explain" id="explain"><div class="verdict"></div><div id="exp-text"></div></div>
+    <div class="btnrow">
+      <button class="btn" id="next" disabled>${qi===QUIZ.length-1?'See results':'Next question'}</button>
+    </div>`;
+  document.querySelectorAll(".opt").forEach(b=>b.addEventListener("click",()=>choose(b)));
+  document.getElementById("next").addEventListener("click",next);
+}
+function choose(btn){
+  if(answered) return;
+  answered=true;
+  const item=QUIZ[qi];
+  const pick=+btn.dataset.i;
+  const correct=pick===item.a;
+  if(correct) score++;
+  results.push({q:item.q,correct,picked:item.o[pick],right:item.o[item.a]});
+  document.querySelectorAll(".opt").forEach(b=>{
+    b.disabled=true;
+    const i=+b.dataset.i;
+    if(i===item.a) b.classList.add("correct");
+    if(i===pick && !correct) b.classList.add("wrong");
+  });
+  const ex=document.getElementById("explain");
+  ex.classList.add("show", correct?"ok":"no");
+  ex.querySelector(".verdict").textContent = correct?"Correct":"Not quite";
+  document.getElementById("exp-text").innerHTML =
+    (correct?"":`The answer is <b>${item.o[item.a].replace(/_(\w+)/,'<sub>$1</sub>')}</b>. `)+item.e;
+  document.getElementById("next").disabled=false;
+}
+function next(){
+  qi++;
+  if(qi<QUIZ.length) renderQ();
+  else showResult();
+}
+function showResult(){
+  fill.style.width="100%";
+  prog.textContent=`Done · ${score}/${QUIZ.length}`;
+  const pct=Math.round(score/QUIZ.length*100);
+  let msg;
+  if(pct===100) msg="Flawless — you can tell all eight apart.";
+  else if(pct>=80) msg="Strong. The trio and the thermal pair are clicking.";
+  else if(pct>=60) msg="Solid base — revisit the ones you missed below.";
+  else msg="Worth another pass through tabs 01 & 04, then retry.";
+  body.innerHTML=`
+    <div class="result">
+      <div class="big">${pct}%</div>
+      <div class="msg">${msg}</div>
+      <div class="muted">${score} of ${QUIZ.length} correct</div>
+    </div>
+    <div class="review">${results.map((r,i)=>`
+      <div class="rev-item ${r.correct?'ok':'no'}">
+        <span class="ic">${r.correct?'✓':'✗'}</span>
+        <span><b>Q${i+1}.</b> ${r.q}${r.correct?'':` <br><span style="color:var(--bad)">you chose: ${r.picked.replace(/_(\w+)/,'<sub>$1</sub>')}</span> · <span style="color:var(--good)">answer: ${r.right.replace(/_(\w+)/,'<sub>$1</sub>')}</span>`}</span>
+      </div>`).join("")}</div>
+    <div class="btnrow"><button class="btn" id="again">Restart quiz</button>
+    <button class="btn ghost" id="back">Back to the properties</button></div>`;
+  document.getElementById("again").addEventListener("click",()=>{qi=0;score=0;results=[];renderQ();});
+  document.getElementById("back").addEventListener("click",()=>document.querySelector('[data-tab="mech"]').click());
+}
+renderQ();
+</script>
+</body>
+</html>
